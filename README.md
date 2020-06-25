@@ -463,3 +463,7 @@ Spec:
     Target Revision:  HEAD
 ```
 The `Target Revision` can be the git-id, tag or version of the source repo.
+
+To follow the lab we make a change and now on UI `hit Refresh` and you should it is out of
+sync and should be able to see the difference and `hit Sync` which will cause the deployment
+to fail. We can use the `hit rollback`

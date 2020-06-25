@@ -5,4 +5,4 @@ resources:
 namePrefix: seizadi-
 images:
 - name: gitopsworkshop/my-app
-  newTag: v2
+  newTag: v1
