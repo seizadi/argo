@@ -205,3 +205,261 @@ To access the API server, so we change the argocd-server service type to LoadBal
 ```bash
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 ```
+You can follow the detail of the setup in the
+[hands on lab README](argodcd/lab/README.md). The lab deployment base and overlay
+is already setup so you can follow the ArgoCD setup, first find the ArgoCD service:
+```bash
+❯ minikube service list
+|-------------|-----------------------|--------------|----------------------------|
+|  NAMESPACE  |         NAME          | TARGET PORT  |            URL             |
+|-------------|-----------------------|--------------|----------------------------|
+..
+| argocd      | -server argocd        | http/80      | http://192.168.64.26:30684 |
+|             |                       | https/443    | http://192.168.64.26:30138 |
+...
+|-------------|-----------------------|--------------|----------------------------|
+```
+
+* Open http://192.168.64.26:30684
+
+The default password is set to the name of the server pod.
+```bash
+❯ kubectl -n argocd get pods
+NAME                                             READY   STATUS    RESTARTS   AGE
+..
+argocd-server-86cf69886-js4f7                    1/1     Running   0          96m
+
+```
+
+* Click "Login Via Github"
+* Click "New application"
+
+| Field | Value |
+|-------|-------|
+| Application name: | `seizadi-my-app` |
+| Project: | `default` |
+| Sync policy: | `Manual` |
+| Repository: | `https://github.com/seizadi/argo` |
+| Revision: | `HEAD` |
+| Path: | `argocd/lab/overlays/dev |
+| Cluster: | `https://kubernetes.default.svc` |
+| Namespace: | `default` |
+
+The UI is smart enough to fill in some fields.
+
+* Click "Sync".
+* Click "Synchronize" in the Sliding panel.
+
+Now you should have a green application and pod running.
+
+We did all this from the UI, but we can see how this would work if we did it
+all from kubectl, there is also ArgoCD CLI that is layer above kubectl:
+
+```bash
+❯ k get crds
+NAME                       CREATED AT
+applications.argoproj.io   2020-06-24T22:57:23Z
+appprojects.argoproj.io    2020-06-24T22:57:23Z
+```
+ArgoCD is fairly like weight it only has two CRDs that map to the top level
+Project and the Application we create from UI.
+```bash
+> k describe crd applications.argoproj.io 
+....
+    Short Names:
+      app
+      apps
+    Singular:  application
+...
+```
+```bash
+> k describe crd appprojects.argoproj.io
+  Accepted Names:
+    Kind:       AppProject
+    List Kind:  AppProjectList
+    Plural:     appprojects
+    Short Names:
+      appproj
+      appprojs
+    Singular:  appproject
+```
+```bash
+❯ k -n argocd get appprojects
+NAME      AGE
+default   167m
+❯ k -n argocd describe  appproject default
+Name:         default
+Namespace:    argocd
+Labels:       <none>
+Annotations:  <none>
+API Version:  argoproj.io/v1alpha1
+Kind:         AppProject
+Metadata:
+  Creation Timestamp:  2020-06-24T22:58:06Z
+  Generation:          1
+  Managed Fields:
+    API Version:  argoproj.io/v1alpha1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:spec:
+        .:
+        f:clusterResourceWhitelist:
+        f:destinations:
+        f:sourceRepos:
+    Manager:         argocd-server
+    Operation:       Update
+    Time:            2020-06-24T22:58:06Z
+  Resource Version:  873
+  Self Link:         /apis/argoproj.io/v1alpha1/namespaces/argocd/appprojects/default
+  UID:               2dc12ce8-07da-4035-b100-65f455dc58a3
+Spec:
+  Cluster Resource Whitelist:
+    Group:  *
+    Kind:   *
+  Destinations:
+    Namespace:  *
+    Server:     *
+  Source Repos:
+    *
+Events:  <none>
+```
+So looks like the ArgoCD project `Spec` is mainly a filter to limit the
+project to where and from what repos the Applications can be created.
+```yaml
+Spec:
+  Cluster Resource Whitelist:
+    Group:  *
+    Kind:   *
+  Destinations:
+    Namespace:  *
+    Server:     *
+  Source Repos:
+    *
+```
+
+```bash
+❯ k -n argocd get apps
+NAME             AGE
+seizadi-my-app   30m
+❯ k -n argocd get app seizadi-my-app
+NAME             AGE
+seizadi-my-app   31m
+❯ k -n argocd describe app seizadi-my-app
+Name:         seizadi-my-app
+Namespace:    argocd
+Labels:       <none>
+Annotations:  <none>
+API Version:  argoproj.io/v1alpha1
+Kind:         Application
+Metadata:
+  Creation Timestamp:  2020-06-25T01:17:52Z
+  Generation:          21
+  Managed Fields:
+    API Version:  argoproj.io/v1alpha1
+...
+    Manager:      argocd-server
+    Operation:    Update
+    Time:         2020-06-25T01:24:46Z
+    API Version:  argoproj.io/v1alpha1
+...
+Spec:
+  Destination:
+    Namespace:  default
+    Server:     https://kubernetes.default.svc
+  Project:      default
+  Source:
+    Path:             argocd/lab/overlays/dev
+    Repo URL:         https://github.com/seizadi/argo
+    Target Revision:  HEAD
+Status:
+  Health:
+    Status:  Healthy
+  History:
+    Deployed At:  2020-06-25T01:24:46Z
+    Id:           0
+    Revision:     89177d85261bca6d55cd418f4d52d8174ea25447
+    Source:
+      Path:             argocd/lab/overlays/dev
+      Repo URL:         https://github.com/seizadi/argo
+      Target Revision:  HEAD
+  Observed At:          2020-06-25T01:48:56Z
+  Operation State:
+    Finished At:  2020-06-25T01:24:46Z
+    Message:      successfully synced (all tasks run)
+    Operation:
+      Initiated By:
+        Username:  admin
+      Sync:
+        Revision:  89177d85261bca6d55cd418f4d52d8174ea25447
+        Sync Strategy:
+          Hook:
+    Phase:       Succeeded
+    Started At:  2020-06-25T01:24:46Z
+    Sync Result:
+      Resources:
+        Group:       
+        Hook Phase:  Running
+        Kind:        Pod
+        Message:     pod/seizadi-my-app created
+        Name:        seizadi-my-app
+        Namespace:   default
+        Status:      Synced
+        Sync Phase:  Sync
+        Version:     v1
+      Revision:      89177d85261bca6d55cd418f4d52d8174ea25447
+      Source:
+        Path:             argocd/lab/overlays/dev
+        Repo URL:         https://github.com/seizadi/argo
+        Target Revision:  HEAD
+  Reconciled At:          2020-06-25T01:48:56Z
+  Resources:
+    Health:
+      Status:   Healthy
+    Kind:       Pod
+    Name:       seizadi-my-app
+    Namespace:  default
+    Status:     Synced
+    Version:    v1
+  Source Type:  Kustomize
+  Summary:
+    Images:
+      gitopsworkshop/my-app:v1
+  Sync:
+    Compared To:
+      Destination:
+        Namespace:  default
+        Server:     https://kubernetes.default.svc
+      Source:
+        Path:             argocd/lab/overlays/dev
+        Repo URL:         https://github.com/seizadi/argo
+        Target Revision:  HEAD
+    Revision:             89177d85261bca6d55cd418f4d52d8174ea25447
+    Status:               Synced
+Events:
+  Type    Reason              Age   From                           Message
+  ----    ------              ----  ----                           -------
+  Normal  ResourceCreated     31m   argocd-server                  admin created application
+  Normal  ResourceUpdated     31m   argocd-application-controller  Updated sync status:  -> OutOfSync
+  Normal  ResourceUpdated     31m   argocd-application-controller  Updated health status:  -> Missing
+  Normal  OperationStarted    27m   argocd-server                  admin initiated sync to HEAD (89177d85261bca6d55cd418f4d52d8174ea25447)
+  Normal  OperationCompleted  27m   argocd-application-controller  Sync operation to 89177d85261bca6d55cd418f4d52d8174ea25447 succeeded
+  Normal  OperationStarted    24m   argocd-server                  admin initiated sync to HEAD (89177d85261bca6d55cd418f4d52d8174ea25447)
+  Normal  ResourceUpdated     24m   argocd-application-controller  Updated sync status: OutOfSync -> Synced
+  Normal  OperationCompleted  24m   argocd-application-controller  Sync operation to 89177d85261bca6d55cd418f4d52d8174ea25447 succeeded
+  Normal  ResourceUpdated     24m   argocd-application-controller  Updated health status: Missing -> Progressing
+  Normal  ResourceUpdated     24m   argocd-application-controller  Updated health status: Progressing -> Healthy
+```
+
+The ArgoCD Application `Spec` is very close to the UI presentation:
+```yaml
+Spec:
+  Destination:
+    Namespace:  default
+    Server:     https://kubernetes.default.svc
+  Project:      default
+  Source:
+    Path:             argocd/lab/overlays/dev
+    Repo URL:         https://github.com/seizadi/argo
+    Target Revision:  HEAD
+```
+The `Target Revision` can be the git-id, tag or version of the source repo.
