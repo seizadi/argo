@@ -1,5 +1,8 @@
 # Argo
 
+[Good blog post](https://blog.argoproj.io/the-state-of-kubernetes-configuration-management-d8b06c1205) 
+from Argo Team on CI/CD configuration management.
+
 Argo project is made up of a number of solutions, I will review them here:
    * Argo Workflow (ArgoWF)
    * ArgoCD
@@ -176,6 +179,8 @@ not designed to be multi-tenant, so it lacks security in knowing who is logging 
 can see and do on ArgoWF. The ArgoWF UI is not on LoadBalancer so it is not directly exposed outside.
 
 ## ArgoCD
+Good overview of the overall solutions in the
+[CI/CD including ArgoCD](https://www.inovex.de/blog/spinnaker-vs-argo-cd-vs-tekton-vs-jenkins-x/). 
 This is a [good tutorial on ArgoCD](https://www.youtube.com/watch?v=r50tRQjisxw)
 from last KubeCon, which uses following
 [Github repo for handon lab](https://github.com/gitops-workshop/my-app-deployment). I moved
@@ -466,4 +471,55 @@ The `Target Revision` can be the git-id, tag or version of the source repo.
 
 To follow the lab we make a change and now on UI `hit Refresh` and you should it is out of
 sync and should be able to see the difference and `hit Sync` which will cause the deployment
-to fail. We can use the `hit rollback`
+to fail. We can use the `hit rollback` to restore to V1 version then update the git repo
+to v1 so both repo and ArgoCD are in sync.
+
+### ArgoCD Secrets
+ArgoCD and [Flux](https://www.weave.works/blog/storing-secure-sealed-secrets-using-gitops) as 
+GitOps tools both have to solve the Secret problem, since you don't want to store them
+in the repo and both propose to use [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets)
+This is the [ArgoCD demo of it](https://github.com/gitops-workshop/secrets)
+
+### ArgoCD Helm
+ArgoCD can also act as a helm Operator using GitOps model. This
+[helm hands on lab](https://github.com/gitops-workshop/helm) demonstrates how to
+publish a helm repo from Git repo. You can see in this part of the
+[helm hands on lab](https://github.com/gitops-workshop/argo-cd-demos) how the
+helm app is deployed:
+```bash
+argocd app create helm-app --repo https://github.com/gitops-workshop/helm.git --path my-app --revision master --dest-server https://kubernetes.default.svc --dest-namespace my-app-helm
+argocd app sync helm-app
+```
+
+## Compare ArgoCD versus Flux
+I am putting this here for now, should be some where else so I can easily find and update
+
+* Capability to automatically deploy/sync application when docker image is changed 
+
+ArogCD: Doesn't by default. You'll need another step in the CI to modify the deployment 
+files/helm values with the new image tag, so it will detect the change to Git and change deployment.
+
+Flex: Monitors the Docker Image can have write access to Git repo and automatically change the
+deployment to the new image and push new deployment.
+
+* Handle multiple Git Repos:
+
+ArgoCD: Can support multiple Git Repos and multiple clusters, but does not have a 
+robust RBAC for multi-tenancy,
+it makes it difficult to build a GitOps for the cluster resources and one for each team
+on to manage their namespace(s) and application deployment.
+
+Flex: Each instance of Flex handles a Git repo, can support multi-tenancy with multiple
+instances. It can be tiered with one at cluster level and deploying other Flex instances
+for application teams. It lacks single pane of glass visibility to see all applications
+ and deployment across cluster(s).
+
+* Support for Federation
+
+ArgoCD: Can support multi-cluster configuration and they have documented a pattern
+for Federation called 
+[App of Apps](https://argoproj.github.io/argo-cd/operator-manual/cluster-bootstrapping/).
+In which a parent cluster can spawn application on child clusters.
+
+Flux: It does not support multi-cluster, but you could pair it with projects like Kube-Fed,
+Admirality or Crossplane to solve these use cases.
