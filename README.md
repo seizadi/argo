@@ -523,3 +523,33 @@ In which a parent cluster can spawn application on child clusters.
 
 Flux: It does not support multi-cluster, but you could pair it with projects like Kube-Fed,
 Admirality or Crossplane to solve these use cases.
+
+## ArgoCD CI/CD GitOps Patterns
+This is [Flux Issue](https://github.com/fluxcd/flux/issues/1071) has a good
+review of what type of GitOps patterns people are using or enhancements they would
+like to see in GitOps tool like ArgoCD or Flux.
+
+This is a good summary of the above...
+Branch-per-environment
+👍 simpler filesystem structure: a single set of resources
+👍 a cluster is modified by modifying its branch
+👍 divergent branches (=> clusters/environments) can be detected via git diff and so potentially automatically brought back into sync
+
+👎 PR process is complicated by having to choose the correct branch as the comparison base/merge target
+👎 some changes will need to be merged to all branches
+👎 divergent branches will cause merge conflicts
+👎 Flux cannot be configured to watch multiple branches for a single cluster, ArgoCD can do this.
+
+The first two of the 👎s can be addressed with automation (GitHub actions, command-line app, etc.). Divergent branches can't be resolved with automation, but might be prevented entirely by automation. The last 👎 can be resolved with a flux instance per environment
+
+Directory-per-environment
+👍 simpler branching structure: a single branch means no risk of merge conflicts
+👍 a cluster is modified by modifying its directory
+👍 PR process is simple: branch off master, merge back to master
+👍 multi-cluster updates are simpler: side-by-side comparison of cluster state in the repo, copy-paste changes between files
+👍 Flux and ArgoCD can be configured to watch multiple paths for a single cluster
+
+👎 divergent environments may be harder to detect
+👎 mental load of having everything in the same place is not insignificant
+
+The first of the 👎s can be addressed with automation (PR checks, GitHub Actions, commit hooks, etc.)
