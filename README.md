@@ -532,24 +532,70 @@ like to see in GitOps tool like ArgoCD or Flux.
 This is a good summary of the above...
 Branch-per-environment
 👍 simpler filesystem structure: a single set of resources
+
 👍 a cluster is modified by modifying its branch
+
 👍 divergent branches (=> clusters/environments) can be detected via git diff and so potentially automatically brought back into sync
 
 👎 PR process is complicated by having to choose the correct branch as the comparison base/merge target
+
 👎 some changes will need to be merged to all branches
+
 👎 divergent branches will cause merge conflicts
+
 👎 Flux cannot be configured to watch multiple branches for a single cluster, ArgoCD can do this.
 
 The first two of the 👎s can be addressed with automation (GitHub actions, command-line app, etc.). Divergent branches can't be resolved with automation, but might be prevented entirely by automation. The last 👎 can be resolved with a flux instance per environment
 
 Directory-per-environment
+
 👍 simpler branching structure: a single branch means no risk of merge conflicts
+
 👍 a cluster is modified by modifying its directory
+
 👍 PR process is simple: branch off master, merge back to master
+
 👍 multi-cluster updates are simpler: side-by-side comparison of cluster state in the repo, copy-paste changes between files
+
 👍 Flux and ArgoCD can be configured to watch multiple paths for a single cluster
 
 👎 divergent environments may be harder to detect
+
 👎 mental load of having everything in the same place is not insignificant
 
 The first of the 👎s can be addressed with automation (PR checks, GitHub Actions, commit hooks, etc.)
+
+
+The other other aspect is whether to based the design on ArgoCD or Flux. This
+[GitOpsEngine Design](https://github.com/argoproj/gitops-engine/blob/master/specs/design.md)
+and associated
+[Bottom-Up Design](https://github.com/argoproj/gitops-engine/blob/master/specs/design-bottom-up.md)
+and
+[Top-Down Design](https://github.com/argoproj/gitops-engine/blob/master/specs/design-top-down.md)
+give overview of the two solutions. I captured what I feel are the strenghts/weaknesses below:
+
+ArgoCD:
+👍 view of all applications and health in single dashboard
+
+👍 multi-cluster view of all applications
+
+👎 require [Auth/Groups](https://argoproj.github.io/argo-cd/operator-manual/user-management/okta/) 
+and [RBAC](https://argoproj.github.io/argo-cd/operator-manual/rbac/)
+
+👎 require more attention to [security](https://argoproj.github.io/argo-cd/operator-manual/security/).
+admin user credentials should be not be used on the system and RBAC groups used for access instead.
+
+Flux: 
+
+👍 easy to setup and scale
+
+👍 can give full control of namespace including Flux component to application developers
+
+👍 ability to monitor docker images and write updates to git repo, in practice I think to
+update the repo has a more complex workflow and updating the docker registry and git repo can all be
+part of that workflow
+
+
+👎 no global dashboard or view of all applications and health ( can be built using APIs)
+
+👎 not multi-cluster ( can be built using Federation )
