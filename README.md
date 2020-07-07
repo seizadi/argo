@@ -599,3 +599,56 @@ part of that workflow
 👎 no global dashboard or view of all applications and health ( can be built using APIs)
 
 👎 not multi-cluster ( can be built using Federation )
+
+## Argo Rollout
+This is the soltuion that is similar to Flagger and unlike Flagger that works with existing
+Deployment and new CRD to wrap it, Rollout requires application developers to make changes 
+to their Deployment to a new CRD to take advantage of Rollout.
+
+This is a good [overview from the Intuit Team](https://www.youtube.com/watch?v=yeVkTTO9nOA), 
+it is quiet old and this is a 
+[better overview](https://www.youtube.com/watch?v=fviYWA2mcF8)
+of the Rollout. The Argo Rollout [concepts are here](https://argoproj.github.io/argo-rollouts/concepts/).
+
+In general there is weak integration across the Argo projects,
+here is a description of 
+[how ArgoCD and Argo Rollout integrate](https://argoproj.github.io/argo-rollouts/FAQ/#how-does-argo-rollouts-integrate-with-argo-cd).
+
+Now for PoC with Argo Rollout....
+
+[Install Argo Rollout](https://argoproj.github.io/argo-rollouts/installation/).
+I will focus on Argo Rollout with Linkerd, so look at
+[Argo Rollout Traffic Management](https://argoproj.github.io/argo-rollouts/features/traffic-management/).
+For linkerd we look at
+[Traffic Split Interface](https://argoproj.github.io/argo-rollouts/features/traffic-management/smi/).
+
+The reference diagram for SMI is similar to what we have for Flagger/Linkerd:
+![Argo Rollout Linkerd Traffic Split](./doc/img/argo-rollout-smi-diagram.png)
+
+Add Argo Rollout plugin on MacOS for following PoC:
+```bash
+brew install argoproj/tap/kubectl-argo-rollouts
+kubectl argo rollouts version
+```
+I did a 
+[Flux and Linkerd PoC](https://github.com/seizadi/flagger-linkerd),
+ I follow a similar PoC with Argo Rollout and compare the two solutions.
+
+**** CAUTION THE STEPS BELOW WILL DELETE YOUR CURRENT MINIKUBE INSTALLATION ****
+
+```bash
+cd examples/argorollout
+make rollout
+make test
+```
+To check status:
+```bash
+make status
+```
+
+To change image:
+```bash
+make update-yellow
+make status
+make watch
+```
