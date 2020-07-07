@@ -25,9 +25,13 @@ spec:
       labels:
         app: rollouts-demo
     spec:
+      restartPolicy: Always
+      dnsPolicy: Default
       containers:
         - name: rollouts-demo
           image: argoproj/rollouts-demo:blue
+          imagePullPolicy: IfNotPresent
+          terminationMessagePolicy: FallbackToLogsOnError
           ports:
             - name: http
               containerPort: 8080
