@@ -19,8 +19,6 @@ spec:
   template:
     metadata:
       annotations:
-        prometheus.io/port: "9797"
-        prometheus.io/scrape: "true"
         config.linkerd.io/proxy-cpu-limit: "1.5"
         config.linkerd.io/proxy-cpu-request: "0.2"
         config.linkerd.io/proxy-memory-limit: 2Gi
@@ -29,49 +27,21 @@ spec:
         app: rollouts-demo
     spec:
       containers:
-        - command:
-            - ./podinfo
-            - --port=9898
-            - --port-metrics=9797
-            - --grpc-port=9999
-            - --grpc-service-name=podinfo
-            - --level=info
-            - --random-delay=false
-            - --random-error=false
-          env:
-            - name: PODINFO_UI_LOGO
-              value: https://eks.handson.flagger.dev/cuddle_clap.gif
-            - name: PODINFO_UI_COLOR
-              value: '#34577c'
-          image: stefanprodan/podinfo:3.1.0
+        - name: rollouts-demo
+          image: argoproj/rollouts-demo:blue
           imagePullPolicy: IfNotPresent
           livenessProbe:
-            exec:
-              command:
-                - podcli
-                - check
-                - http
-                - localhost:9898/healthz
+            tcpSocket:
+              port: 8080
             initialDelaySeconds: 5
             timeoutSeconds: 5
-          name: podinfod
           ports:
-            - containerPort: 9898
+            - containerPort: 8080
               name: http
               protocol: TCP
-            - containerPort: 9797
-              name: http-metrics
-              protocol: TCP
-            - containerPort: 9999
-              name: grpc
-              protocol: TCP
           readinessProbe:
-            exec:
-              command:
-                - podcli
-                - check
-                - http
-                - localhost:9898/readyz
+            tcpSocket:
+              port: 8080
             initialDelaySeconds: 5
             timeoutSeconds: 5
           resources:
