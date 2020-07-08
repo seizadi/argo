@@ -3,5 +3,5 @@ kind: Namespace
 metadata:
   name: test
   annotations:
-# Do we need this for Argo Rollout is it enabled by default?
+    fluxcd.io/ignore: "false"
     linkerd.io/inject: enabled

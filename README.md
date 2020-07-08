@@ -652,3 +652,31 @@ make update-yellow
 make status
 make watch
 ```
+
+## Debug
+
+### SMI Support pre-Alpha
+To get SMI PoC to work, I had to get the manifests from PR and run latest (actually master for now),
+not stable build.
+
+### SMI Promote fails
+When I promote the rollout that is paused on startup it goes degraded.
+```bash
+kubectl -n test describe rollout rollouts-demo
+....
+Status:
+.... 
+  Conditions:
+    Last Transition Time:  2020-07-08T04:10:43Z
+    Last Update Time:      2020-07-08T04:10:43Z
+    Message:               Rollout does not have minimum availability
+    Reason:                AvailableReason
+    Status:                False
+    Type:                  Available
+    Last Transition Time:  2020-07-08T04:20:44Z
+    Last Update Time:      2020-07-08T04:20:44Z
+    Message:               ReplicaSet "rollouts-demo-5b778cc597" has timed out progressing.
+    Reason:                ProgressDeadlineExceeded
+    Status:                False
+    Type:                  Progressing
+```

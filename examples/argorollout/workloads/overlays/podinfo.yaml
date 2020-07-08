@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo
+  namespace: test
+spec:
+  template:
+    spec:
+      containers:
+        - name: podinfod
+          image: stefanprodan/podinfo:3.1.1
+          env:
+            - name: PODINFO_UI_LOGO
+              value: https://eks.handson.flagger.dev/cuddle_bunny.gif

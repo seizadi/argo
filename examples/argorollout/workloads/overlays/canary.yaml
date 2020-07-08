@@ -1,0 +1,37 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: podinfo
+  namespace: test
+spec:
+  analysis:
+    webhooks:
+      - name: acceptance-test-token
+        type: pre-rollout
+        url: http://flagger-loadtester.demo/
+        timeout: 30s
+        metadata:
+          type: bash
+          cmd: "curl -sd 'test' http://podinfo-canary.demo:9898/token | grep token"
+      - name: acceptance-test-tracing
+        type: pre-rollout
+        url: http://flagger-loadtester.demo/
+        timeout: 30s
+        metadata:
+          type: bash
+          cmd: "curl -s http://podinfo-canary.demo:9898/headers | grep X-Request-Id"
+      - name: load-test
+        url: http://flagger-loadtester.demo/
+        timeout: 5s
+        metadata:
+          cmd: "hey -z 1m -q 10 -c 2 http://podinfo-canary.demo:9898/"
+# In case you want to try A/B Routing using HTTP Header or Cookie match
+# I could not get this to work, see debug section of README
+#  analysis:
+#    interval: 30s
+#    threshold: 10
+#    iterations: 10
+#    match:
+#      - headers:
+#          user-agent:
+#            regex: ".*Chrome.*"

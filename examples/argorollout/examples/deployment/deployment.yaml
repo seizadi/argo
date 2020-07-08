@@ -1,20 +1,10 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: rollouts-demo
   namespace: test
 spec:
   replicas: 1
-  strategy:
-    canary:
-      canaryService: rollouts-demo-canary
-      stableService: rollouts-demo-stable
-      trafficRouting:
-        smi: {}
-      steps:
-        - setWeight: 50
-        - pause: {}
-  revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: rollouts-demo
