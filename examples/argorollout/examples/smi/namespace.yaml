@@ -3,5 +3,4 @@ kind: Namespace
 metadata:
   name: test
   annotations:
-# Do we need this for Argo Rollout is it enabled by default?
     linkerd.io/inject: enabled

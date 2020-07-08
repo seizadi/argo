@@ -32,6 +32,12 @@ spec:
           image: argoproj/rollouts-demo:blue
           imagePullPolicy: IfNotPresent
           terminationMessagePolicy: FallbackToLogsOnError
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
           ports:
             - name: http
               containerPort: 8080
@@ -40,7 +46,7 @@ spec:
             tcpSocket:
               port: 8080
             initialDelaySeconds: 5
-            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests:
               memory: 32Mi

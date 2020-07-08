@@ -6,9 +6,6 @@ metadata:
   name: rollouts-demo
   namespace: test
 spec:
-  minReadySeconds: 5
-  progressDeadlineSeconds: 60
-  revisionHistoryLimit: 5
   selector:
     matchLabels:
       app: rollouts-demo
@@ -19,10 +16,7 @@ spec:
   template:
     metadata:
       annotations:
-        config.linkerd.io/proxy-cpu-limit: "1.5"
-        config.linkerd.io/proxy-cpu-request: "0.2"
-        config.linkerd.io/proxy-memory-limit: 2Gi
-        config.linkerd.io/proxy-memory-request: 128Mi
+        linkerd.io/inject: enabled
       labels:
         app: rollouts-demo
     spec:
@@ -45,9 +39,6 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 5
           resources:
-            limits:
-              cpu: 2000m
-              memory: 512Mi
             requests:
-              cpu: 100m
-              memory: 64Mi
+              memory: 32Mi
+              cpu: 5m
