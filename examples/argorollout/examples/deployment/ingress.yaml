@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: rollouts-demo-stable
+  name: rollouts-demo
   namespace: test
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -9,11 +9,11 @@ metadata:
       proxy_set_header l5d-dst-override $service_name.$namespace.svc.cluster.local:$service_port;
 spec:
   rules:
-    - host: rollouts-demo.local
+    - host: minikube
       http:
         paths:
           - path: /
             backend:
               # Reference to a Service name, also specified in the Rollout spec.strategy.canary.stableService field
-              serviceName: rollouts-demo-stable
+              serviceName: rollouts-demo
               servicePort: 80
