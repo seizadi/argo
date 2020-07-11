@@ -7,6 +7,7 @@ Argo project is made up of a number of solutions, I will review them here:
    * Argo Workflow (ArgoWF)
    * ArgoCD
    * Argo Rollout
+   * Argo Events
 
 ## Argo Workflow (ArgoWF) is a workflow solution
 [It is compared to other workflow solutions](https://www.youtube.com/watch?v=oXPgX7G_eow&utm_campaign=Singapore&utm_content=97139107&utm_medium=social&utm_source=twitter&hss_channel=tw-381629790)
@@ -653,6 +654,42 @@ make status
 make watch
 ```
 
+## Argo Events
+[Argo Events](https://github.com/argoproj/argo-events), is an event-driven workflow 
+automation framework for Kubernetes which helps you trigger K8s objects, Argo Workflows, 
+Serverless workloads, etc. on events from variety of sources like webhook, s3, schedules, 
+messaging queues, gcp pubsub, sns, sqs, etc.
+
+It will be interesting to contrast it to a package like [Atlas PubSub](https://github.com/infobloxopen/atlas-pubsub)
+or a platform like [Dapr](https://dapr.io/).
+
+Here is the highlevel architcture diagram and components:
+* [Event Source](https://argoproj.github.io/argo-events/concepts/event_source/)
+* [Gateway](https://argoproj.github.io/argo-events/concepts/gateway/)
+* [Sensor](https://argoproj.github.io/argo-events/concepts/sensor/)
+* [Trigger](https://argoproj.github.io/argo-events/concepts/trigger/)
+
+![ArgoEvents](doc/img/argo-events-high-level-architecture.png)
+
+I was trying to think how this would work as a general purpose notification engine.
+It would be good to see how we can use AWS SNS to handle AWS SMS and SES use cases, and other 
+gateways like PagerDuty, you can get a more complete list of gateways that might be
+required from 
+[Grafana open source](https://grafana.com/docs/grafana/latest/alerting/notifications/#list-of-supported-notifiers).
+
+The following references would be relevant if you were building gateways using AWS native services:
+* [Sending SMS Text using SNS](https://docs.aws.amazon.com/sns/latest/dg/sns-mobile-phone-number-as-subscriber.html)
+* [SES Notifications using SNS](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/monitor-sending-activity-using-notifications-sns.html)
+
+The platform is intersting Nofification service, I am concerned about the impact it will have on
+kubernetes API server and etcd under heavy load, you could write you own API server to minimize the load.
+
+It is also does not have fine-grained AuthN/AuthZ or multi-tenancy in case you wanted to use it for
+customer use cases. If it was performant you could add these features to the notification
+engine, but a lot of the logic (e.g. triggers, circuit, switch, filter or policy) need to be aware of the
+multi-tenancy so it might be difficult to add it a layer on top.
+
+
 ## Debug
 
 ### SMI Support pre-Alpha
@@ -679,4 +716,19 @@ Status:
     Reason:                ProgressDeadlineExceeded
     Status:                False
     Type:                  Progressing
+```
+
+Problem seems to be that the Linkerd sidecar takes a 503 error, I converted this to a Deployment without
+SMI and it worked
+```bash
+kubectl -n test describe pod
+....
+Events:
+  Type     Reason     Age                    From               Message
+  ----     ------     ----                   ----               -------
+  Normal   Scheduled  55m                    default-scheduler  Successfully assigned test/rollouts-demo-868f9df8cd-5ctlz to minikube
+  Normal   Pulled     55m                    kubelet, minikube  Container image “gcr.io/linkerd-io/proxy-init:v1.3.3” already present on machine
+....
+  Normal   Started    55m                    kubelet, minikube  Started container linkerd-proxy
+  Warning  Unhealthy  4m59s (x301 over 54m)  kubelet, minikube  Readiness probe failed: HTTP probe failed with statuscode: 503
 ```
