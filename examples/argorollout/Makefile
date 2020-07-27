@@ -9,8 +9,9 @@ cluster:
 #    Alternatively to use this addon you can use a vm-based driver:
 #
 #            'minikube start --vm=true'
-# Trying v1.17.5 instead of v1.18.3
-	minikube start --cpus=3 --kubernetes-version v1.17.5
+# Tried v1.17.5 instead of v1.18.3 didn't fix the problem
+#	minikube start --cpus=3 --kubernetes-version v1.17.5
+	minikube start --cpus=3
 	minikube addons enable ingress
 	minikube addons enable metrics-server
 	@echo 'Built minikube cluster'
@@ -34,8 +35,9 @@ flagger: cluster linkerd
 
 rollout: cluster linkerd
 	kubectl create namespace argo-rollouts
-	# Use latest; stable does not have support for SMI yet
-	# kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/latest/manifests/install.yaml
+	# Use master which has latest image; stable does not have support for SMI yet
+	# kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
+	# This did not work for me after installing I killed the deployment and ran it from build of latest on master
 	kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/master/manifests/install.yaml
 	@echo 'Done with deploy Argo Rollout'
 

@@ -247,7 +247,7 @@ argocd-server-86cf69886-js4f7                    1/1     Running   0          96
 | Sync policy: | `Manual` |
 | Repository: | `https://github.com/seizadi/argo` |
 | Revision: | `HEAD` |
-| Path: | `argocd/lab/overlays/dev |
+| Path: | `examples/argocd/lab/overlays/dev` |
 | Cluster: | `https://kubernetes.default.svc` |
 | Namespace: | `default` |
 
@@ -732,3 +732,5 @@ Events:
   Normal   Started    55m                    kubelet, minikube  Started container linkerd-proxy
   Warning  Unhealthy  4m59s (x301 over 54m)  kubelet, minikube  Readiness probe failed: HTTP probe failed with statuscode: 503
 ```
+
+Started a [thread with Linkerd to figure out why the Linkerd proxy fails](https://github.com/linkerd/linkerd2/issues/4685#issuecomment-664554233)
