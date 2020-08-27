@@ -601,6 +601,25 @@ part of that workflow
 
 👎 not multi-cluster ( can be built using Federation )
 
+### Comparison of ArgoCD single versus multi-cluster
+#### 1 argocd for N clusters:
+pro: single dashboard
+pro: single place to configure webhooks and your SSO / RBAC integration
+pro: a single place for your CI/CD system to communicate with to watch app rollouts and health
+con: all apps need unique names (so… all your CRDs need target-cluster specific prefixes/suffixes)
+con: blast-radius
+con: setting up 1 argo cd that has permission to effect change in all your clusters could make your security staff sad. (bribe them with baked goods).
+con: you’ve got to do some (kinda) convoluted bootstrapping of the target clusters. 1. create cluster. 2. ensure master cluster can talk to k8s API of new cluster 3. setup the cluster secret in master, and roles in destination 4. create a bootstrapping app to create namespaces in the target cluster 5. create all the apps that actually deploy from the master to the target
+#### 1 argocd per cluster
+pro: all changes are ‘pull’ — it’s reaching out to git to decide what to do, no external argocd has to be given access to your cluster
+pro: much easier naming of your apps
+pro: blast radius
+pro: bootstrapping a new cluster is easier. 1. create cluster 2. install argo manifests to new cluster 3. apply all the app CRDs that deploy to local cluster.
+con: multiple dashboards / sso / webhooks (maybe that’s mitigated if they all feed into one monitoring system? depends on who’s using the dashboard and for what purpose)
+con: if your CI/CD system talks to the argocd API to wait for rollouts, your CICD pipeline needs to know about all the argocd instances. (and auth credentials for each)
+how you weigh those pros/cons are going to depend on you and your team, and what you find painful/complex.
+it’d probably also depend on how often you add new clusters or replace clusters; and how you manage all the stuff ‘around’ your platform that glues things together.
+
 ## Argo Rollout
 This is the soltuion that is similar to Flagger and unlike Flagger that works with existing
 Deployment and new CRD to wrap it, Rollout requires application developers to make changes 
