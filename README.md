@@ -16,6 +16,8 @@ data pipeline and ML use cases, which was an intersting use case I had not thoug
 Argo DAG. Here are some more options across those use cases, with native kubernetes solutions in the top:
 
    * [Brigade](https://brigade.sh/)
+   * [Tekton](https://tekton.dev/)
+   * [JenkinsX](https://jenkins-x.io/)
    * [Fision](https://fission.io) and [Fision Workflows](https://docs.fission.io/docs/workflows/)
    * [Airship](https://www.airshipit.org/) [Shipyard DAG](https://airshipit.readthedocs.io/projects/shipyard/en/latest/)
    * [Apache Airflow](https://airflow.apache.org/)
